@@ -3,12 +3,12 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useScheduleStore } from "@/stores/use-schedule-store";
 import { Header } from "@/components/header";
 import { WallpaperCanvas } from "@/components/wallpaper-canvas";
 import { CustomizeCard } from "@/components/customize-card";
 import { AnnouncementBanner } from "@/components/announcement-banner";
 import { SchedulePdfBanner } from "@/components/schedule-pdf-banner";
-import { DownloadHistoryGallery } from "@/components/download-history-gallery";
 import { HelpButton } from "@/components/help-button";
 import { Footer } from "@/components/footer";
 import { Loader2 } from "lucide-react";
@@ -18,12 +18,21 @@ export default function Home() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
 
+  const initListener = useScheduleStore((s) => s.initListener);
+
   useEffect(() => {
     // Mandatory Student ID Gate: Require Student ID before accessing home page
     if (!isAuthenticated || !user) {
       router.push("/login");
     }
   }, [isAuthenticated, user, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const unsub = initListener();
+      return () => unsub();
+    }
+  }, [isAuthenticated, user, initListener]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -60,9 +69,6 @@ export default function Home() {
           {/* Right Panel: Customize Controls */}
           <CustomizeCard />
         </section>
-
-        {/* Download History Re-Download Panel for active Student ID */}
-        <DownloadHistoryGallery />
       </main>
 
       {/* Floating iOS-Style How to Use Help Button */}

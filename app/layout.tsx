@@ -18,7 +18,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Schedule Wallpaper",
+  title: "Class Schedule",
   description: "A schedule wallpaper that fits perfectly. Designed to stay out of the way.",
   icons: {
     icon: "/favicon.ico",

@@ -64,7 +64,6 @@ export function StudentLoginForm() {
         studentId: match.studentId,
         name: match.name,
         role: "student" as const,
-        consentStatus: match.consentStatus,
         token: `tok_student_${match.studentId}_${Date.now()}`,
       };
 

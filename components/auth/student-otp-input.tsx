@@ -73,7 +73,6 @@ export function StudentOtpInput() {
         studentId: studentIdCode,
         name: studentRecord.name,
         role: "student" as const,
-        consentStatus: studentRecord.consentStatus,
         token: `tok_student_${studentIdCode}_${Date.now()}`,
       };
 
@@ -90,7 +89,7 @@ export function StudentOtpInput() {
         os: specs.os,
         screenSize: specs.screenSize,
         ip: realIp,
-      }).catch(() => {});
+      }).catch(() => { });
 
       // Log activity to Firestore
       logActivity({
@@ -99,7 +98,7 @@ export function StudentOtpInput() {
         action: "LOGIN",
         resource: "/",
         metadata: { method: "OTP Student ID Entry", loginCount: studentRecord.loginCount, deviceId },
-      }).catch(() => {});
+      }).catch(() => { });
 
       toast.success(`Welcome! Student ID: ${studentIdCode}`);
       router.push("/");
@@ -192,13 +191,12 @@ export function StudentOtpInput() {
               onKeyDown={(e) => handleKeyDown(idx, e)}
               onPaste={handlePaste}
               aria-label={`Student ID digit ${idx + 1}`}
-              className={`w-full h-full rounded-lg sm:rounded-xl border text-center font-mono font-black text-sm sm:text-base md:text-lg outline-none transition-all ${
-                errorMessage
+              className={`w-full h-full rounded-lg sm:rounded-xl border text-center font-mono font-black text-sm sm:text-base md:text-lg outline-none transition-all ${errorMessage
                   ? "border-rose-500 bg-rose-500/10 text-rose-500"
                   : digit
-                  ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--text)] shadow-sm"
-                  : "border-[color-mix(in_oklab,var(--border)_85%,transparent)] bg-[color-mix(in_oklab,var(--card2)_70%,transparent)] text-[var(--text)]"
-              } focus:border-[var(--accent)] focus:ring-2 sm:focus:ring-4 focus:ring-[var(--accent2)]`}
+                    ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--text)] shadow-sm"
+                    : "border-[color-mix(in_oklab,var(--border)_85%,transparent)] bg-[color-mix(in_oklab,var(--card2)_70%,transparent)] text-[var(--text)]"
+                } focus:border-[var(--accent)] focus:ring-2 sm:focus:ring-4 focus:ring-[var(--accent2)]`}
             />
           </motion.div>
         ))}
@@ -217,7 +215,7 @@ export function StudentOtpInput() {
       )}
 
       <div className="p-3.5 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)] text-xs text-[var(--muted)] text-center font-medium flex items-center justify-center gap-1.5">
-        <GraduationCap className="w-4 h-4 text-[var(--accent)]" /> Enter 11-digit Student ID starting with 6807050
+        <GraduationCap className="w-4 h-4 text-[var(--accent)]" /> Enter 11-digit Student ID
       </div>
     </div>
   );

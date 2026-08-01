@@ -66,7 +66,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
                   How to Use
                 </h2>
                 <p className="text-xs text-[var(--muted)]">
-                  Create your own iPhone-style schedule wallpaper in just a few steps.
+                  Create your own iPhone-style class schedule wallpaper in just a few steps.
                 </p>
               </div>
             </div>

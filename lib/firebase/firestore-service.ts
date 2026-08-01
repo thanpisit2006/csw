@@ -72,7 +72,6 @@ export async function getStudentById(studentId: string): Promise<UserRecord | nu
     verificationCode: data.verificationCode || "",
     name: data.name || `Student ${studentId}`,
     email: data.email || "",
-    consentStatus: data.consentStatus || "pending",
     loginCount: data.loginCount || 0,
     lastLogin: tsToISO(data.lastLogin),
     lastActivity: tsToISO(data.lastActivity || data.lastLogin),
@@ -174,7 +173,6 @@ export async function createStudentAccount(params: {
     expirationMode: params.expirationMode || "never",
     expirationDate: params.expirationDate || "",
     notes: params.notes || "",
-    consentStatus: "pending",
     loginCount: 0,
     lastLogin: serverTimestamp(),
     lastActivity: serverTimestamp(),
@@ -252,7 +250,6 @@ export async function upsertStudentOnLogin(
       studentId: data.studentId,
       verificationCode: data.verificationCode || "",
       name: data.name || `Student ${studentId}`,
-      consentStatus: data.consentStatus || "pending",
       loginCount: data.loginCount || 1,
       lastLogin: tsToISO(data.lastLogin),
       lastActivity: tsToISO(data.lastActivity || data.lastLogin),
@@ -275,7 +272,6 @@ export async function upsertStudentOnLogin(
     const newRef = await addDoc(collection(db, COLLECTIONS.STUDENTS), {
       studentId,
       name: `Student ${studentId}`,
-      consentStatus: "pending",
       loginCount: 1,
       lastLogin: serverTimestamp(),
       lastActivity: serverTimestamp(),
@@ -295,7 +291,6 @@ export async function upsertStudentOnLogin(
       studentId,
       verificationCode: "",
       name: `Student ${studentId}`,
-      consentStatus: "pending",
       loginCount: 1,
       lastLogin: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
@@ -360,15 +355,6 @@ export async function unblockUser(studentDocId: string): Promise<void> {
   });
 }
 
-
-export async function updateStudentConsentStatus(
-  studentDocId: string,
-  status: "accepted" | "declined"
-): Promise<void> {
-  const docRef = doc(db, COLLECTIONS.STUDENTS, studentDocId);
-  await updateDoc(docRef, { consentStatus: status });
-}
-
 export async function getAllStudents(): Promise<UserRecord[]> {
   const snap = await getDocs(
     query(collection(db, COLLECTIONS.STUDENTS), orderBy("createdAt", "desc"))
@@ -380,7 +366,6 @@ export async function getAllStudents(): Promise<UserRecord[]> {
       studentId: data.studentId,
       verificationCode: data.verificationCode || "",
       name: data.name || `Student ${data.studentId}`,
-      consentStatus: data.consentStatus || "pending",
       loginCount: data.loginCount || 0,
       lastLogin: tsToISO(data.lastLogin),
       lastActivity: tsToISO(data.lastActivity || data.lastLogin),

@@ -8,7 +8,6 @@ export interface UserRecord {
   verificationCode: string;
   name: string;
   email?: string;
-  consentStatus: "pending" | "accepted" | "declined";
   loginCount: number;
   lastLogin: string;
   lastActivity?: string;
@@ -67,8 +66,7 @@ export interface AuditLogRecord {
     | "DOWNLOAD_WALLPAPER"
     | "OPEN_PAGE"
     | "SEARCH"
-    | "FAILED_LOGIN"
-    | "UPDATE_CONSENT";
+    | "FAILED_LOGIN";
   resource: string;
   metadata: Record<string, unknown>;
   browser: string;

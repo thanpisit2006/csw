@@ -66,9 +66,8 @@ export function JsonScheduleEditor() {
 
           {msg && (
             <div
-              className={`mt-2 text-xs p-2 rounded-lg font-mono ${
-                msg.error ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"
-              }`}
+              className={`mt-2 text-xs p-2 rounded-lg font-mono ${msg.error ? "bg-rose-500/10 text-rose-500" : "bg-emerald-500/10 text-emerald-500"
+                }`}
             >
               {msg.text}
             </div>

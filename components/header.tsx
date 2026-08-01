@@ -3,10 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { LogIn, ShieldAlert } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { UserProfileModal } from "@/components/auth/user-profile-modal";
-import { ConsentModal } from "@/components/auth/consent-modal";
 import { UserAvatar } from "@/components/user/UserAvatar";
 import { useRandomAvatar } from "@/hooks/useRandomAvatar";
 import { BrandLogo } from "@/components/ui/brand-logo";
@@ -26,7 +25,7 @@ export function Header() {
             <BrandLogo className="w-8 h-8 shrink-0" />
             <div className="min-w-0">
               <div className="font-extrabold tracking-tight leading-tight text-[var(--text)] text-base truncate">
-                Schedule Wallpaper
+                Class Schedule
               </div>
               <div className="text-xs text-[var(--muted)] mt-0.5 hidden sm:block truncate">
                 Designed to stay out of the way.
@@ -74,7 +73,6 @@ export function Header() {
                 <LogIn className="w-4 h-4 text-[var(--accent)]" /> Sign In
               </Link>
             )}
-
           </div>
         </div>
       </header>
@@ -83,8 +81,6 @@ export function Header() {
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
       />
-
-      <ConsentModal />
     </>
   );
 }

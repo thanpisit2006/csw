@@ -81,7 +81,7 @@ export function UsersTab() {
       logActivity({
         userId: "admin",
         studentId: variables.studentId,
-        action: "UPDATE_CONSENT",
+        action: "OPEN_PAGE",
         resource: `Student: ${variables.studentId}`,
         metadata: { adminAction: "CREATE_USER", studentId: variables.studentId, status: variables.status },
       }).catch(() => {});
@@ -103,7 +103,7 @@ export function UsersTab() {
       logActivity({
         userId: "admin",
         studentId: "ADMIN",
-        action: "UPDATE_CONSENT",
+        action: "OPEN_PAGE",
         resource: `Student Doc: ${variables.id}`,
         metadata: { adminAction: "EDIT_USER", updates: variables.updates },
       }).catch(() => {});
@@ -124,7 +124,7 @@ export function UsersTab() {
       logActivity({
         userId: "admin",
         studentId: "ADMIN",
-        action: "UPDATE_CONSENT",
+        action: "OPEN_PAGE",
         resource: `Student Doc: ${studentId}`,
         metadata: { adminAction: "DELETE_USER", targetDocId: studentId },
       }).catch(() => {});
@@ -146,7 +146,7 @@ export function UsersTab() {
       logActivity({
         userId: "admin",
         studentId: "ADMIN",
-        action: "UPDATE_CONSENT",
+        action: "OPEN_PAGE",
         resource: `Student Doc: ${variables.id}`,
         metadata: { adminAction: "CHANGE_STATUS", newStatus: variables.status, reason: variables.reason },
       }).catch(() => {});

@@ -12,7 +12,6 @@ import {
   User,
   GraduationCap,
   LogOut,
-  ShieldCheck,
   Download,
   Calendar,
   X,
@@ -88,22 +87,12 @@ export function UserProfileModal({ isOpen, onClose }: UserProfileModalProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-xs">
-          <div className="p-3 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)]">
-            <div className="text-[var(--muted)] flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[var(--accent)]" /> Consent Status
-            </div>
-            <div className="font-bold text-[var(--text)] mt-1 capitalize">
-              {user.consentStatus}
-            </div>
+        <div className="p-3 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)]">
+          <div className="text-[var(--muted)] flex items-center gap-1 text-xs">
+            <Calendar className="w-3.5 h-3.5 text-[var(--accent)]" /> Role / Permission
           </div>
-          <div className="p-3 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)]">
-            <div className="text-[var(--muted)] flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-[var(--accent)]" /> Role / Permission
-            </div>
-            <div className="font-bold text-[var(--text)] mt-1 capitalize">
-              {user.role}
-            </div>
+          <div className="font-bold text-[var(--text)] mt-1 capitalize text-xs">
+            {user.role}
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { ScheduleItem } from "@/lib/types";
+import { useAuthStore } from "@/stores/use-auth-store";
 import {
   FirestoreScheduleRecord,
   saveScheduleRecord,
@@ -55,15 +56,41 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
 
   initListener: () => {
     const unsub = subscribeSchedules((records) => {
-      if (records.length > 0) {
-        set((state) => ({
-          schedulesList: records,
-          activeScheduleId: state.activeScheduleId && records.some((r) => r.id === state.activeScheduleId)
+      const authUser = useAuthStore.getState().user;
+      
+      // Filter schedules accessible by current logged-in user
+      const accessible = records.filter((r) => {
+        // Admin sees all schedules (published, draft, archived)
+        if (authUser?.role === "admin") return true;
+
+        // User must be published
+        if (r.status !== "published") return false;
+
+        // Check if studentId is explicitly blocked
+        if (authUser?.studentId && r.blockedStudentIds?.includes(authUser.studentId)) {
+          return false;
+        }
+
+        // Check visibility rules
+        if (r.visibility === "restricted") {
+          return false;
+        }
+        if (r.visibility === "selected") {
+          return authUser?.studentId ? r.allowedStudentIds?.includes(authUser.studentId) : false;
+        }
+
+        // Public schedules
+        return true;
+      });
+
+      set((state) => ({
+        schedulesList: accessible,
+        activeScheduleId:
+          state.activeScheduleId && accessible.some((r) => r.id === state.activeScheduleId)
             ? state.activeScheduleId
-            : records[0].id,
-          isSubscribed: true,
-        }));
-      }
+            : accessible[0]?.id || "",
+        isSubscribed: true,
+      }));
     });
     return unsub;
   },
@@ -74,11 +101,10 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
 
   getActiveScheduleRecord: () => {
     const { schedulesList, activeScheduleId } = get();
-    return (
-      schedulesList.find((s) => s.id === activeScheduleId) ||
-      schedulesList.find((s) => s.status === "published") ||
-      DEFAULT_SCHEDULE
-    );
+    const active = schedulesList.find((s) => s.id === activeScheduleId);
+    if (active) return active;
+    if (schedulesList.length > 0) return schedulesList[0];
+    return DEFAULT_SCHEDULE;
   },
 
   getActiveSchedule: () => {

@@ -12,10 +12,10 @@ export default function StudentLoginPage() {
         <div className="text-center grid gap-2">
           <BrandLogo className="w-14 h-14 mx-auto" />
           <h1 className="text-3xl font-black tracking-tight text-[var(--text)]">
-            Student Access Portal
+            Class Schedule
           </h1>
           <p className="text-xs text-[var(--muted)]">
-            Schedule Wallpaper • Enter Student ID to Continue
+            Enter Student ID to Continue
           </p>
         </div>
 
@@ -28,12 +28,12 @@ export default function StudentLoginPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center text-xs text-[var(--muted)] flex items-center justify-center gap-1">
+        {/* <div className="text-center text-xs text-[var(--muted)] flex items-center justify-center gap-1">
           <ShieldCheck className="w-3.5 h-3.5 text-[var(--accent)]" /> System Administrator?{" "}
           <Link href="/admin-login" className="text-[var(--accent)] hover:underline font-bold">
             Admin Login
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -47,7 +47,7 @@ export function SchedulePdfBanner() {
         <div className="min-w-0">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <h3 className="font-extrabold text-sm sm:text-base text-[var(--text)] tracking-tight">
-              📄 Official Schedule PDF Available
+              📄 Class Schedule PDF Available
             </h3>
             {activeSched.pdfFileSize && (
               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[color-mix(in_oklab,var(--chip)_80%,transparent)] text-[var(--muted)] border border-[var(--border)]">
@@ -56,7 +56,7 @@ export function SchedulePdfBanner() {
             )}
           </div>
           <p className="text-xs text-[var(--muted)] mt-0.5 leading-relaxed">
-            You can download the official PDF version of this class schedule ({activeSched.title}).
+            You can download the PDF version of this class schedule ({activeSched.title}).
           </p>
         </div>
       </div>
@@ -72,7 +72,7 @@ export function SchedulePdfBanner() {
         ) : (
           <Download className="w-4 h-4" />
         )}
-        Download Official PDF
+        Download PDF
       </button>
     </div>
   );
