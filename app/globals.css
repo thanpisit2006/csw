@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Display", "SF Pro Text", "Noto Sans Thai", Segoe UI, Roboto, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+    /* Light Theme Palette */
+    --bg: #F7F7F8;
+    --text: #111111;
+    --muted: #666666;
+    --card: #FFFFFF;
+    --card2: rgba(255, 255, 255, 0.65);
+    --border: rgba(0, 0, 0, 0.08);
+    --glass: rgba(255, 255, 255, 0.65);
+    --shadow: 0 18px 60px rgba(0, 0, 0, 0.06);
+    --accent: #0071e3;
+    --accent2: rgba(0, 113, 227, 0.14);
+    --chip: rgba(0, 0, 0, 0.06);
+    --shell: 1600px;
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      /* Dark Theme Palette */
+      --bg: #0A0A0A;
+      --text: #FFFFFF;
+      --muted: #A1A1AA;
+      --card: #151515;
+      --card2: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.12);
+      --glass: rgba(255, 255, 255, 0.08);
+      --shadow: 0 22px 80px rgba(0, 0, 0, 0.6);
+      --accent: #2997ff;
+      --accent2: rgba(41, 151, 255, 0.16);
+      --chip: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #F7F7F8;
+    --text: #111111;
+    --muted: #666666;
+    --card: #FFFFFF;
+    --card2: rgba(255, 255, 255, 0.65);
+    --border: rgba(0, 0, 0, 0.08);
+    --glass: rgba(255, 255, 255, 0.65);
+    --shadow: 0 18px 60px rgba(0, 0, 0, 0.06);
+    --accent: #0071e3;
+    --accent2: rgba(0, 113, 227, 0.14);
+    --chip: rgba(0, 0, 0, 0.06);
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0A0A0A;
+    --text: #FFFFFF;
+    --muted: #A1A1AA;
+    --card: #151515;
+    --card2: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.12);
+    --glass: rgba(255, 255, 255, 0.08);
+    --shadow: 0 22px 80px rgba(0, 0, 0, 0.6);
+    --accent: #2997ff;
+    --accent2: rgba(41, 151, 255, 0.16);
+    --chip: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background: var(--bg);
+    transition: background-color 250ms ease, color 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+  }
+
+  .safe-area-padding {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body, * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(1200px 600px at 20% -10%, color-mix(in oklab, var(--accent) 15%, transparent) 0%, transparent 62%),
+      radial-gradient(900px 500px at 105% 0%, rgba(170, 90, 255, 0.12) 0%, transparent 60%),
+      radial-gradient(700px 500px at 40% 110%, rgba(0, 200, 255, 0.08) 0%, transparent 60%),
+      var(--bg);
+    filter: saturate(1.05);
+    transition: background 250ms ease;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 8px color-mix(in oklab, var(--accent) 40%, transparent));
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+    filter: drop-shadow(0 0 18px color-mix(in oklab, var(--accent) 80%, transparent));
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes ekg-dash {
+  0% {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    opacity: 0.2;
+  }
+  50% {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dasharray: 200;
+    stroke-dashoffset: -200;
+    opacity: 0.2;
+  }
+}
+
+.animate-ekg-path {
+  animation: ekg-dash 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-glow,
+  .animate-ekg-path {
+    animation: none !important;
+  }
+}
+
+

@@ -1,0 +1,37 @@
+import { db } from "./client";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  Timestamp,
+  runTransaction,
+  writeBatch,
+} from "firebase/firestore";
+
+export {
+  db,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  Timestamp,
+  runTransaction,
+  writeBatch,
+};

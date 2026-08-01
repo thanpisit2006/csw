@@ -1,0 +1,144 @@
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+
+# Package managers
+.pnpm-store/
+.npm/
+.yarn/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ===========================
+# Next.js
+# ===========================
+.next/
+out/
+
+# Build
+build/
+dist/
+coverage/
+
+# Turbopack
+.turbo/
+
+# ===========================
+# Vercel
+# ===========================
+.vercel/
+
+# ===========================
+# Environment Variables
+# ===========================
+.env
+.env.*
+!.env.example
+
+# ===========================
+# Firebase
+# ===========================
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Service account keys
+serviceAccountKey.json
+firebase-adminsdk*.json
+
+# ===========================
+# Logs
+# ===========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===========================
+# Cache
+# ===========================
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# ===========================
+# TypeScript
+# ===========================
+*.tsbuildinfo
+
+# ===========================
+# macOS
+# ===========================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===========================
+# Windows
+# ===========================
+Thumbs.db
+Desktop.ini
+
+# ===========================
+# Linux
+# ===========================
+*~
+
+# ===========================
+# IDE
+# ===========================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+.idea/
+
+# ===========================
+# Temporary
+# ===========================
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ===========================
+# Archives
+# ===========================
+*.zip
+*.7z
+*.rar
+*.tar
+*.gz
+
+# ===========================
+# Large media (optional)
+# Uncomment if you don't want Git to track them
+# ===========================
+# *.mp4
+# *.mov
+# *.avi
+# *.psd
+# *.ai
+# *.sketch
+# *.fig
+
+# ===========================
+# Generated images
+# ===========================
+public/generated/
+uploads/
+
+# ===========================
+# Test
+# ===========================
+playwright-report/
+test-results/
