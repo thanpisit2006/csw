@@ -98,12 +98,16 @@ export function useCanvasRenderer(canvasRef: RefObject<HTMLCanvasElement | null>
       ctx.closePath();
     }
 
-    // Glass panel background
+    // Glass panel background: Semi-transparent soft black (72% opacity), light blur glassmorphism, low opacity border, gentle shadow
     ctx.save();
-    ctx.globalAlpha = 0.95;
-    ctx.fillStyle = "rgba(28,28,30,.58)";
-    ctx.strokeStyle = "rgba(255,255,255,.18)";
-    ctx.lineWidth = Math.max(2, Math.round(W * 0.002));
+    ctx.shadowColor = "rgba(0, 0, 0, 0.40)";
+    ctx.shadowBlur = Math.round(W * 0.025);
+    ctx.shadowOffsetY = Math.round(W * 0.01);
+
+    ctx.globalAlpha = 1.0;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.40)"; // Soft black overlay (approx 72% opacity)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)"; // Low-opacity soft white border
+    ctx.lineWidth = Math.max(1.5, Math.round(W * 0.002));
     roundRect(panelX, panelY, panelW, panelH, Math.round(W * 0.038));
     ctx.fill();
     ctx.stroke();
@@ -117,7 +121,7 @@ export function useCanvasRenderer(canvasRef: RefObject<HTMLCanvasElement | null>
 
     // Schedule title (top-left of panel)
     const titleText = getActiveTitle() || "iCPE 2/2025";
-    ctx.fillStyle = "rgba(255,255,255,.88)";
+    ctx.fillStyle = "#ffffff";
     ctx.font = `800 ${Math.max(20, Math.round(W * 0.019 * FONT_SCALE))}px ui-sans-serif, system-ui`;
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -131,7 +135,7 @@ export function useCanvasRenderer(canvasRef: RefObject<HTMLCanvasElement | null>
 
     // Grid lines
     ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,.10)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.10)";
     ctx.lineWidth = 1;
     for (let c = 0; c <= cols; c++) {
       const x = ix + c * colW;
@@ -150,7 +154,7 @@ export function useCanvasRenderer(canvasRef: RefObject<HTMLCanvasElement | null>
     ctx.restore();
 
     // Day labels (above grid)
-    ctx.fillStyle = "rgba(255,255,255,.70)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.font = `800 ${Math.max(12, Math.round(W * 0.012 * FONT_SCALE))}px ui-sans-serif, system-ui`;
     ctx.textAlign = "left";
     ctx.textBaseline = "alphabetic";
@@ -175,49 +179,71 @@ export function useCanvasRenderer(canvasRef: RefObject<HTMLCanvasElement | null>
       const y2 = iy + ((e - TIME_START) / tRange) * ih;
 
       // Block bounds
-      const bx = ix + dayIndex * colW + 6;
-      const by = y1 + 6;
-      const bw = colW - 12;
-      const bh = y2 - y1 - 12;
+      const bx = ix + dayIndex * colW + 5;
+      const by = y1 + 5;
+      const bw = colW - 10;
+      const bh = y2 - y1 - 10;
 
       if (bw <= 0 || bh <= 0) return;
 
-      // Block fill + stroke
+      // Soft dark cell fill with gentle shadow and low opacity border
       ctx.save();
-      ctx.globalAlpha = 0.94;
-      ctx.fillStyle = item.color || "rgba(160,200,255,1)";
-      ctx.strokeStyle = "rgba(255,255,255,.35)";
-      ctx.lineWidth = 1.2;
-      roundRect(bx, by, bw, bh, 16);
+      ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+      ctx.shadowBlur = 6;
+      ctx.shadowOffsetY = 2;
+
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = item.color || "rgba(30, 41, 59, 0.90)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      roundRect(bx, by, bw, bh, 14);
       ctx.fill();
       ctx.stroke();
       ctx.restore();
 
-      // Course text
-      ctx.fillStyle = "rgba(10,12,20,.88)";
+      // Course text - Black typography inside schedule cells
+      ctx.save();
       const titleSize = Math.max(14, Math.round(W * 0.014 * FONT_SCALE));
-      const subSize   = Math.max(11, Math.round(W * 0.011 * FONT_SCALE));
+      const subSize = Math.max(11, Math.round(W * 0.011 * FONT_SCALE));
 
       ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
+      ctx.textBaseline = "top";
 
-      ctx.font = `900 ${titleSize}px ui-sans-serif, system-ui`;
-      ctx.fillText(item.title || "", bx + 12, by + 24);
+      // 1. Subject Name: Black, bold, slightly larger
+      ctx.fillStyle = "#000000";
+      ctx.font = `800 ${titleSize}px ui-sans-serif, system-ui`;
+      const titleTextStr = item.title || "";
+      const maxTitleWidth = bw - 20;
 
-      ctx.font = `800 ${subSize}px ui-sans-serif, system-ui`;
+      let displayTitle = titleTextStr;
+      if (ctx.measureText(displayTitle).width > maxTitleWidth) {
+        while (displayTitle.length > 3 && ctx.measureText(displayTitle + "…").width > maxTitleWidth) {
+          displayTitle = displayTitle.slice(0, -1);
+        }
+        displayTitle += "…";
+      }
+      ctx.fillText(displayTitle, bx + 10, by + 10);
+
+      // 2. Time Text: Black with solid readability (90% opacity)
+      ctx.font = `600 ${subSize}px ui-sans-serif, system-ui`;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.90)";
       ctx.fillText(
         `${fmtTime(item.start)}–${fmtTime(item.end)}`,
-        bx + 12,
-        by + 24 + Math.round(titleSize * 1.25)
+        bx + 10,
+        by + 10 + titleSize + 5
       );
 
+      // 3. Room / Instructor: Black with slightly lighter opacity (75% opacity)
       if (item.room) {
+        ctx.font = `500 ${subSize}px ui-sans-serif, system-ui`;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
         ctx.fillText(
           item.room,
-          bx + 12,
-          by + 24 + Math.round(titleSize * 1.25) + Math.round(subSize * 1.25)
+          bx + 10,
+          by + 10 + titleSize + 5 + subSize + 4
         );
       }
+      ctx.restore();
     });
   }, [
     canvasRef,

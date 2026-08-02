@@ -13,7 +13,7 @@ export function Footer() {
         <span>All Rights Reserved</span>
         <span className="hidden sm:inline opacity-40">•</span>
         <span className="font-mono text-[10px] bg-[color-mix(in_oklab,var(--chip)_60%,transparent)] px-2 py-0.5 rounded-md border border-[var(--border)]">
-          Version 2.1.5
+          Version 2.1.6
         </span>
       </div>
     </footer>

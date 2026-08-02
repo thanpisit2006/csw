@@ -269,11 +269,10 @@ export function SchedulesTab() {
             return (
               <div
                 key={sched.id}
-                className={`p-4 rounded-2xl border transition-all grid gap-3 ${
-                  isActive
-                    ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_10%,transparent)] shadow-md"
-                    : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--card2)_60%,transparent)]"
-                }`}
+                className={`p-4 rounded-2xl border transition-all grid gap-3 ${isActive
+                  ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_10%,transparent)] shadow-md"
+                  : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--card2)_60%,transparent)]"
+                  }`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <div>
@@ -413,33 +412,30 @@ export function SchedulesTab() {
                   <button
                     type="button"
                     onClick={() => setVisibility("public")}
-                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${
-                      visibility === "public"
-                        ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--accent)]"
-                        : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
-                    }`}
+                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${visibility === "public"
+                      ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--accent)]"
+                      : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
+                      }`}
                   >
                     <Eye className="w-3.5 h-3.5 mx-auto mb-1" /> Public (Everyone)
                   </button>
                   <button
                     type="button"
                     onClick={() => setVisibility("selected")}
-                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${
-                      visibility === "selected"
-                        ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--accent)]"
-                        : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
-                    }`}
+                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${visibility === "selected"
+                      ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--accent)]"
+                      : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
+                      }`}
                   >
                     <Users className="w-3.5 h-3.5 mx-auto mb-1" /> Selected Students
                   </button>
                   <button
                     type="button"
                     onClick={() => setVisibility("restricted")}
-                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${
-                      visibility === "restricted"
-                        ? "border-rose-500 bg-rose-500/15 text-rose-500"
-                        : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
-                    }`}
+                    className={`p-2.5 rounded-xl border text-center font-bold text-xs transition-all ${visibility === "restricted"
+                      ? "border-rose-500 bg-rose-500/15 text-rose-500"
+                      : "border-[color-mix(in_oklab,var(--border)_70%,transparent)] text-[var(--muted)]"
+                      }`}
                   >
                     <ShieldAlert className="w-3.5 h-3.5 mx-auto mb-1" /> Restricted (Private)
                   </button>
