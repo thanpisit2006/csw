@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 import { Providers } from "@/components/providers";
 import { BlockedUserGuard } from "@/components/auth/blocked-user-guard";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://classbank.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://csw-jet.vercel.app";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -22,15 +22,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Class Bank | University Class Schedule",
+    default: "Class Bank",
     template: "%s | Class Bank",
   },
-  description:
-    "Class Bank allows university students to manage, design, and export custom high-resolution class schedule lock screen wallpapers and view official semester PDF schedules.",
+  description: "Create, manage, and download your university class schedules easily.",
   keywords: [
     "Class Bank",
     "Class Schedule",
-    "University Schedule Wallpaper",
+    "University Class Schedule",
     "Student Schedule",
     "Lock Screen Wallpaper",
     "Timetable Generator",
@@ -45,7 +44,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   alternates: {
-    canonical: "/",
+    canonical: siteUrl,
   },
   robots: {
     index: true,
@@ -67,25 +66,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    title: "Class Bank | University Class Schedule",
-    description:
-      "Design custom high-resolution class schedule lock screen wallpapers and access your official university class schedules cleanly.",
+    title: "Class Bank",
+    description: "Create, manage, and download your university class schedules easily.",
     siteName: "Class Bank",
     images: [
       {
-        url: "/og-image.png",
+        url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Class Bank - University Class Schedule & Wallpaper Generator",
+        alt: "Class Bank - Create, manage, and download your university class schedules easily.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Class Bank | University Class Schedule",
-    description:
-      "Design custom high-resolution class schedule lock screen wallpapers and access your official university class schedules cleanly.",
-    images: ["/og-image.png"],
+    title: "Class Bank",
+    description: "Create, manage, and download your university class schedules easily.",
+    images: [`${siteUrl}/og-image.png`],
     creator: "@classbank",
   },
 };
