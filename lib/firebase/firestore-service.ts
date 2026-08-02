@@ -182,6 +182,15 @@ export async function createStudentAccount(params: {
     allowedScheduleIds: [],
     allowedFeatures: [],
   });
+
+  // Sync normalized profile document under users/{uid}/profile/main
+  await setDoc(doc(db, "users", newRef.id, "profile", "main"), {
+    fullName: params.name,
+    email: params.email || "",
+    studentId: params.studentId,
+    createdAt: serverTimestamp(),
+  });
+
   return newRef.id;
 }
 
@@ -752,6 +761,90 @@ export async function saveScheduleRecord(
 export async function deleteScheduleRecord(id: string): Promise<void> {
   const { deleteDoc } = await import("firebase/firestore");
   await deleteDoc(doc(db, "schedules", id));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NORMALIZED USER SUBCOLLECTION ACCESSORS (users/{userId})
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Admin: Save user-dedicated class schedule to users/{userId}/classSchedule/main */
+export async function saveUserClassSchedule(
+  userId: string,
+  schedule: {
+    semester: string;
+    academicYear: string;
+    classes: import("@/lib/types").ScheduleItem[];
+    pdfUrl?: string;
+    wallpaperUrl?: string;
+    createdByAdmin?: boolean;
+  }
+): Promise<void> {
+  const docRef = doc(db, "users", userId, "classSchedule", "main");
+  await setDoc(
+    docRef,
+    {
+      semester: schedule.semester,
+      academicYear: schedule.academicYear,
+      classes: schedule.classes,
+      pdfUrl: schedule.pdfUrl || "",
+      wallpaperUrl: schedule.wallpaperUrl || "",
+      createdByAdmin: schedule.createdByAdmin ?? true,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/** Get user's dedicated class schedule from users/{userId}/classSchedule/main */
+export async function getUserClassSchedule(
+  userId: string
+): Promise<import("@/lib/db/mock-data").UserClassScheduleSubdoc | null> {
+  const docRef = doc(db, "users", userId, "classSchedule", "main");
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return {
+    semester: data.semester || "1",
+    academicYear: data.academicYear || "2026",
+    classes: data.classes || [],
+    pdfUrl: data.pdfUrl || "",
+    wallpaperUrl: data.wallpaperUrl || "",
+    updatedAt: tsToISO(data.updatedAt),
+    createdByAdmin: data.createdByAdmin ?? true,
+  };
+}
+
+/** Save user settings to users/{userId}/settings/preferences */
+export async function saveUserSettings(
+  userId: string,
+  settings: Partial<import("@/lib/db/mock-data").UserSettingsSubdoc>
+): Promise<void> {
+  const docRef = doc(db, "users", userId, "settings", "preferences");
+  await setDoc(
+    docRef,
+    {
+      theme: settings.theme || "system",
+      notifications: settings.notifications ?? true,
+      language: settings.language || "en-US",
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/** Get user settings from users/{userId}/settings/preferences */
+export async function getUserSettings(
+  userId: string
+): Promise<import("@/lib/db/mock-data").UserSettingsSubdoc | null> {
+  const docRef = doc(db, "users", userId, "settings", "preferences");
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return null;
+  const data = snap.data();
+  return {
+    theme: data.theme || "system",
+    notifications: data.notifications ?? true,
+    language: data.language || "en-US",
+  };
 }
 
 

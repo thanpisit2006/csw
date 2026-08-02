@@ -55,19 +55,49 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
   isSubscribed: false,
 
   initListener: () => {
+    const authUser = useAuthStore.getState().user;
+
+    // First try fetching dedicated user schedule from users/{userId}/classSchedule/main
+    if (authUser?.userId) {
+      import("@/lib/firebase/firestore-service").then(({ getUserClassSchedule }) => {
+        getUserClassSchedule(authUser.userId).then((userSched) => {
+          if (userSched && userSched.classes.length > 0) {
+            const dedicatedRecord: FirestoreScheduleRecord = {
+              id: `user_dedicated_${authUser.userId}`,
+              semester: userSched.semester,
+              academicYear: userSched.academicYear,
+              title: `Personal Schedule ${userSched.semester}/${userSched.academicYear}`,
+              status: "published",
+              visibility: "selected",
+              courses: userSched.classes,
+              pdfEnabled: !!userSched.pdfUrl,
+              pdfFileUrl: userSched.pdfUrl,
+              createdAt: userSched.updatedAt,
+              updatedAt: userSched.updatedAt,
+            };
+            set({
+              schedulesList: [dedicatedRecord],
+              activeScheduleId: dedicatedRecord.id,
+              isSubscribed: true,
+            });
+          }
+        }).catch(() => {});
+      });
+    }
+
     const unsub = subscribeSchedules((records) => {
-      const authUser = useAuthStore.getState().user;
+      const currentUser = useAuthStore.getState().user;
       
       // Filter schedules accessible by current logged-in user
       const accessible = records.filter((r) => {
         // Admin sees all schedules (published, draft, archived)
-        if (authUser?.role === "admin") return true;
+        if (currentUser?.role === "admin") return true;
 
         // User must be published
         if (r.status !== "published") return false;
 
         // Check if studentId is explicitly blocked
-        if (authUser?.studentId && r.blockedStudentIds?.includes(authUser.studentId)) {
+        if (currentUser?.studentId && r.blockedStudentIds?.includes(currentUser.studentId)) {
           return false;
         }
 
@@ -76,7 +106,7 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
           return false;
         }
         if (r.visibility === "selected") {
-          return authUser?.studentId ? r.allowedStudentIds?.includes(authUser.studentId) : false;
+          return currentUser?.studentId ? r.allowedStudentIds?.includes(currentUser.studentId) : false;
         }
 
         // Public schedules
@@ -84,11 +114,11 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
       });
 
       set((state) => ({
-        schedulesList: accessible,
+        schedulesList: accessible.length > 0 ? accessible : state.schedulesList,
         activeScheduleId:
           state.activeScheduleId && accessible.some((r) => r.id === state.activeScheduleId)
             ? state.activeScheduleId
-            : accessible[0]?.id || "",
+            : accessible[0]?.id || state.activeScheduleId,
         isSubscribed: true,
       }));
     });

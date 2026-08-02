@@ -2,12 +2,52 @@ export type UserStatus = "active" | "expired" | "suspended" | "banned";
 
 export type ExpirationMode = "never" | "custom" | "manual";
 
+export interface UserProfileSubdoc {
+  fullName: string;
+  email?: string;
+  studentId: string;
+  faculty?: string;
+  department?: string;
+  year?: string;
+  section?: string;
+  createdAt: string;
+}
+
+export interface UserClassScheduleSubdoc {
+  semester: string;
+  academicYear: string;
+  classes: import("@/lib/types").ScheduleItem[];
+  pdfUrl?: string;
+  wallpaperUrl?: string;
+  updatedAt: string;
+  createdByAdmin: boolean;
+}
+
+export interface UserSettingsSubdoc {
+  theme: "dark" | "light" | "system";
+  notifications: boolean;
+  language: string;
+}
+
+export interface UserDownloadsSubdoc {
+  totalDownloads: number;
+  lastDownload?: string;
+}
+
 export interface UserRecord {
   id: string;
   studentId: string;
   verificationCode: string;
   name: string;
   email?: string;
+  faculty?: string;
+  department?: string;
+  year?: string;
+  section?: string;
+  profile?: UserProfileSubdoc;
+  classSchedule?: UserClassScheduleSubdoc;
+  settings?: UserSettingsSubdoc;
+  downloads?: UserDownloadsSubdoc;
   loginCount: number;
   lastLogin: string;
   lastActivity?: string;

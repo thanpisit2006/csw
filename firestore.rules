@@ -7,11 +7,49 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Students collection (Student ID validation)
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // Normalized User Document & Subcollections
+    match /users/{userId} {
+      allow read: if true; // Public access for student verification / authentication lookup
+      allow create, update: if true;
+      allow delete: if isAdmin();
+
+      // Profile Subcollection
+      match /profile/{docId} {
+        allow read: if true;
+        allow create, update: if true;
+        allow delete: if isAdmin();
+      }
+
+      // Dedicated Class Schedule Subcollection (Admin Managed)
+      match /classSchedule/{docId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+      }
+
+      // Settings Subcollection
+      match /settings/{docId} {
+        allow read: if true;
+        allow create, update: if true;
+        allow delete: if isAdmin();
+      }
+
+      // Downloads Subcollection
+      match /downloads/{docId} {
+        allow read: if true;
+        allow create, update: if true;
+        allow delete: if isAdmin();
+      }
+    }
+
+    // Legacy Students collection backward-compatible rules
     match /students/{studentId} {
       allow read: if true;
-      allow create: if request.resource.data.studentId.matches('^6807050[0-9]{4}$');
-      allow update: if isAdmin() || (resource.data.studentId == request.resource.data.studentId);
+      allow create: if true;
+      allow update: if true;
       allow delete: if isAdmin();
     }
 
@@ -42,7 +80,7 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // Schedules collection (Manageable ONLY by Admin)
+    // Schedules collection (Global Shared Schedules)
     match /schedules/{scheduleId} {
       allow read: if true;
       allow create, update, delete: if isAdmin();

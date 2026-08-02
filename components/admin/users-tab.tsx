@@ -8,6 +8,7 @@ import {
   createStudentAccount,
   updateStudentAccount,
   deleteStudentAccount,
+  saveUserClassSchedule,
 } from "@/lib/firebase/firestore-service";
 import type { UserRecord, UserStatus, ExpirationMode } from "@/lib/db/mock-data";
 import { logActivity } from "@/lib/logger";
@@ -35,6 +36,7 @@ import {
   ArrowUpDown,
   Mail,
   FileText,
+  Calendar,
 } from "lucide-react";
 
 export function UsersTab() {
@@ -49,6 +51,11 @@ export function UsersTab() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRecord | null>(null);
   const [deletingUser, setDeletingUser] = useState<UserRecord | null>(null);
+  const [assigningScheduleUser, setAssigningScheduleUser] = useState<UserRecord | null>(null);
+  const [schedSemester, setSchedSemester] = useState("1");
+  const [schedYear, setSchedYear] = useState("2026");
+  const [schedPdfUrl, setSchedPdfUrl] = useState("");
+  const [isAssigning, setIsAssigning] = useState(false);
 
   // Form Fields State
   const [formStudentId, setFormStudentId] = useState("");
@@ -389,6 +396,14 @@ export function UsersTab() {
 
                           <button
                             type="button"
+                            onClick={() => setAssigningScheduleUser(student)}
+                            className="text-emerald-500 hover:underline font-bold text-xs cursor-pointer px-1 flex items-center gap-1"
+                          >
+                            <Calendar className="w-3 h-3" /> Schedule
+                          </button>
+
+                          <button
+                            type="button"
                             onClick={() => handleOpenEdit(student)}
                             className="p-1 text-[var(--muted)] hover:text-[var(--text)] cursor-pointer"
                             aria-label="Edit Student"
@@ -711,6 +726,101 @@ export function UsersTab() {
                 <p className="text-[var(--text)]">{selectedUser.notes}</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Assign Dedicated Class Schedule Modal */}
+      {assigningScheduleUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-[480px] rounded-[24px] border border-[var(--border)] bg-gradient-to-b from-[var(--card)] to-[var(--card2)] shadow-2xl p-6 grid gap-4 relative">
+            <button
+              type="button"
+              onClick={() => setAssigningScheduleUser(null)}
+              className="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--text)]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[color-mix(in_oklab,var(--accent)_20%,transparent)] text-[var(--accent)] flex items-center justify-center shrink-0">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-[var(--text)]">Assign Class Schedule to User</h3>
+                <p className="text-xs text-[var(--muted)] font-mono">{assigningScheduleUser.name} ({assigningScheduleUser.studentId})</p>
+              </div>
+            </div>
+
+            <div className="grid gap-3 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--muted)]">Semester</label>
+                  <Input
+                    value={schedSemester}
+                    onChange={(e) => setSchedSemester(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="1"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-[var(--muted)]">Academic Year</label>
+                  <Input
+                    value={schedYear}
+                    onChange={(e) => setSchedYear(e.target.value)}
+                    className="h-9 text-xs"
+                    placeholder="2026"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-bold text-[var(--muted)]">Schedule PDF URL (Optional)</label>
+                <Input
+                  value={schedPdfUrl}
+                  onChange={(e) => setSchedPdfUrl(e.target.value)}
+                  className="h-9 text-xs font-mono"
+                  placeholder="https://example.com/schedule.pdf"
+                />
+              </div>
+
+              <p className="text-[11px] text-[var(--muted)] bg-[var(--chip)] p-2.5 rounded-xl border border-[var(--border)] leading-relaxed">
+                This schedule will be saved directly to document path <code className="font-mono text-[var(--accent)] font-bold">users/{assigningScheduleUser.id}/classSchedule/main</code>, ensuring complete data isolation for this specific student.
+              </p>
+            </div>
+
+            <div className="pt-2 flex justify-end gap-2">
+              <Button type="button" variant="default" onClick={() => setAssigningScheduleUser(null)} className="h-9 text-xs">
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={isAssigning}
+                onClick={async () => {
+                  setIsAssigning(true);
+                  try {
+                    await saveUserClassSchedule(assigningScheduleUser.id, {
+                      semester: schedSemester,
+                      academicYear: schedYear,
+                      classes: [],
+                      pdfUrl: schedPdfUrl,
+                      createdByAdmin: true,
+                    });
+                    toast.success(`Assigned schedule directly to ${assigningScheduleUser.studentId}!`);
+                    setAssigningScheduleUser(null);
+                  } catch (err) {
+                    console.error(err);
+                    toast.error("Failed to assign schedule.");
+                  } finally {
+                    setIsAssigning(false);
+                  }
+                }}
+                className="h-9 text-xs font-bold"
+              >
+                Save Schedule to User Document
+              </Button>
+            </div>
           </div>
         </div>
       )}
