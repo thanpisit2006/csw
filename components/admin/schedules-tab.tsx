@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useScheduleStore, FirestoreScheduleRecord } from "@/stores/use-schedule-store";
-import { getAllStudents } from "@/lib/firebase/firestore-service";
+import { getAllStudents, reorderSchedules } from "@/lib/firebase/firestore-service";
 import { ScheduleItem } from "@/lib/types";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -264,8 +264,9 @@ export function SchedulesTab() {
 
         {/* Schedules Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {schedulesList.map((sched) => {
+          {schedulesList.map((sched, idx) => {
             const isActive = sched.id === activeScheduleId;
+            const currentOrder = typeof sched.order === "number" ? sched.order : idx + 1;
             return (
               <div
                 key={sched.id}
@@ -275,25 +276,84 @@ export function SchedulesTab() {
                   }`}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <h4 className="font-extrabold text-sm text-[var(--text)] tracking-tight">
-                      {sched.title}
-                    </h4>
-                    <div className="text-[11px] text-[var(--muted)] flex items-center gap-2 mt-0.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-[var(--text)] tracking-tight truncate">
+                        {sched.title}
+                      </h4>
+                    </div>
+                    <div className="text-[11px] text-[var(--muted)] flex items-center gap-2 mt-0.5 flex-wrap">
                       <span>Sem {sched.semester}/{sched.academicYear} • {sched.courses.length} Course(s)</span>
                       <span className="font-bold text-[var(--accent)] capitalize">• Visibility: {sched.visibility || "public"}</span>
                     </div>
                   </div>
 
-                  {sched.status === "published" ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-                      <CheckCircle2 className="w-3 h-3" /> Published
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                      <Clock className="w-3 h-3" /> Draft
-                    </span>
-                  )}
+                  {/* Order Controls & Status */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1 p-1 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)]">
+                      <span className="text-[10px] font-bold text-[var(--muted)] px-1">Order:</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={currentOrder}
+                        onChange={async (e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (isNaN(val) || val < 1) return;
+                          await updateSchedule(sched.id, { order: val });
+                          toast.success(`Updated order for ${sched.title} to #${val}`);
+                        }}
+                        className="w-10 h-6 text-center text-xs font-mono font-bold bg-transparent text-[var(--text)] outline-none border-b border-[var(--border)]"
+                      />
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={async () => {
+                          if (idx === 0) return;
+                          const prev = schedulesList[idx - 1];
+                          const targetOrder = typeof prev.order === "number" ? prev.order : idx;
+                          const newPrevOrder = typeof sched.order === "number" ? sched.order : idx + 1;
+                          await reorderSchedules([
+                            { id: sched.id, order: targetOrder },
+                            { id: prev.id, order: newPrevOrder },
+                          ]);
+                          toast.success(`Moved "${sched.title}" up in order.`);
+                        }}
+                        className="p-1 text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 cursor-pointer"
+                        title="Move Up"
+                      >
+                        <ArrowUp className="w-3 h-3" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === schedulesList.length - 1}
+                        onClick={async () => {
+                          if (idx === schedulesList.length - 1) return;
+                          const next = schedulesList[idx + 1];
+                          const targetOrder = typeof next.order === "number" ? next.order : idx + 2;
+                          const newNextOrder = typeof sched.order === "number" ? sched.order : idx + 1;
+                          await reorderSchedules([
+                            { id: sched.id, order: targetOrder },
+                            { id: next.id, order: newNextOrder },
+                          ]);
+                          toast.success(`Moved "${sched.title}" down in order.`);
+                        }}
+                        className="p-1 text-[var(--muted)] hover:text-[var(--text)] disabled:opacity-30 cursor-pointer"
+                        title="Move Down"
+                      >
+                        <ArrowDown className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    {sched.status === "published" ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        <CheckCircle2 className="w-3 h-3" /> Published
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                        <Clock className="w-3 h-3" /> Draft
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap text-xs pt-2 border-t border-[color-mix(in_oklab,var(--border)_60%,transparent)]">

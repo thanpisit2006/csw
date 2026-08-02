@@ -657,6 +657,7 @@ export interface FirestoreScheduleRecord {
   allowedStudentIds?: string[];
   blockedStudentIds?: string[];
   courses: import("@/lib/types").ScheduleItem[];
+  order?: number;
   pdfEnabled?: boolean;
   pdfFileUrl?: string;
   pdfFileName?: string;
@@ -667,11 +668,20 @@ export interface FirestoreScheduleRecord {
   updatedAt: string;
 }
 
+/** Helper to sort schedule records by order ascending, then by createdAt descending */
+export function sortSchedulesByOrder(records: FirestoreScheduleRecord[]): FirestoreScheduleRecord[] {
+  return [...records].sort((a, b) => {
+    const orderA = typeof a.order === "number" ? a.order : Number.MAX_SAFE_INTEGER;
+    const orderB = typeof b.order === "number" ? b.order : Number.MAX_SAFE_INTEGER;
+    if (orderA !== orderB) return orderA - orderB;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
+
 /** Fetch all semester schedules from Firestore */
 export async function getAllSchedules(): Promise<FirestoreScheduleRecord[]> {
-  const q = query(collection(db, "schedules"), orderBy("createdAt", "desc"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => {
+  const snap = await getDocs(collection(db, "schedules"));
+  const rawRecords = snap.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -683,6 +693,7 @@ export async function getAllSchedules(): Promise<FirestoreScheduleRecord[]> {
       allowedStudentIds: data.allowedStudentIds || [],
       blockedStudentIds: data.blockedStudentIds || [],
       courses: data.courses || [],
+      order: typeof data.order === "number" ? data.order : undefined,
       pdfEnabled: data.pdfEnabled ?? false,
       pdfFileUrl: data.pdfFileUrl || "",
       pdfFileName: data.pdfFileName || "",
@@ -693,14 +704,14 @@ export async function getAllSchedules(): Promise<FirestoreScheduleRecord[]> {
       updatedAt: tsToISO(data.updatedAt),
     };
   });
+  return sortSchedulesByOrder(rawRecords);
 }
 
 /** Real-time listener for published/all schedules */
 export function subscribeSchedules(
   callback: (schedules: FirestoreScheduleRecord[]) => void
 ): () => void {
-  const q = query(collection(db, "schedules"), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
+  return onSnapshot(collection(db, "schedules"), (snap) => {
     const records = snap.docs.map((d) => {
       const data = d.data();
       return {
@@ -713,6 +724,7 @@ export function subscribeSchedules(
         allowedStudentIds: data.allowedStudentIds || [],
         blockedStudentIds: data.blockedStudentIds || [],
         courses: data.courses || [],
+        order: typeof data.order === "number" ? data.order : undefined,
         pdfEnabled: data.pdfEnabled ?? false,
         pdfFileUrl: data.pdfFileUrl || "",
         pdfFileName: data.pdfFileName || "",
@@ -723,7 +735,7 @@ export function subscribeSchedules(
         updatedAt: tsToISO(data.updatedAt),
       };
     });
-    callback(records);
+    callback(sortSchedulesByOrder(records));
   });
 }
 
@@ -733,28 +745,41 @@ export async function saveScheduleRecord(
 ): Promise<string> {
   const targetId = sched.id || `sched_${Date.now()}`;
   const docRef = doc(db, "schedules", targetId);
-  await setDoc(
-    docRef,
-    {
-      semester: sched.semester,
-      academicYear: sched.academicYear,
-      title: sched.title,
-      status: sched.status,
-      visibility: sched.visibility || "public",
-      allowedStudentIds: sched.allowedStudentIds || [],
-      blockedStudentIds: sched.blockedStudentIds || [],
-      courses: sched.courses,
-      pdfEnabled: sched.pdfEnabled ?? false,
-      pdfFileUrl: sched.pdfFileUrl || "",
-      pdfFileName: sched.pdfFileName || "",
-      pdfFileSize: sched.pdfFileSize || 0,
-      pdfUploadedAt: sched.pdfUploadedAt || new Date().toISOString(),
-      updatedAt: serverTimestamp(),
-      createdAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  const payload: Record<string, unknown> = {
+    semester: sched.semester,
+    academicYear: sched.academicYear,
+    title: sched.title,
+    status: sched.status,
+    visibility: sched.visibility || "public",
+    allowedStudentIds: sched.allowedStudentIds || [],
+    blockedStudentIds: sched.blockedStudentIds || [],
+    courses: sched.courses,
+    pdfEnabled: sched.pdfEnabled ?? false,
+    pdfFileUrl: sched.pdfFileUrl || "",
+    pdfFileName: sched.pdfFileName || "",
+    pdfFileSize: sched.pdfFileSize || 0,
+    pdfUploadedAt: sched.pdfUploadedAt || new Date().toISOString(),
+    updatedAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+  };
+
+  if (typeof sched.order === "number") {
+    payload.order = sched.order;
+  }
+
+  await setDoc(docRef, payload, { merge: true });
   return targetId;
+}
+
+/** Batch update display order numbers for a list of schedules */
+export async function reorderSchedules(orderedSchedules: { id: string; order: number }[]): Promise<void> {
+  const { writeBatch } = await import("firebase/firestore");
+  const batch = writeBatch(db);
+  orderedSchedules.forEach(({ id, order }) => {
+    const docRef = doc(db, "schedules", id);
+    batch.update(docRef, { order });
+  });
+  await batch.commit();
 }
 
 /** Delete a schedule record from Firestore */
