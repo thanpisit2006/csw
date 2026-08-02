@@ -65,3 +65,13 @@ export function getDeviceId(): string {
   return devId;
 }
 
+export function convertGoogleDriveUrl(url: string): string {
+  if (!url) return url;
+  // Convert Google Drive sharing/view links into clean view URLs
+  const fileIdMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (fileIdMatch && fileIdMatch[1]) {
+    return `https://drive.google.com/file/d/${fileIdMatch[1]}/view`;
+  }
+  return url;
+}
+

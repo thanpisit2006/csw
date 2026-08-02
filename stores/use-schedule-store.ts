@@ -61,7 +61,7 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
     if (authUser?.userId) {
       import("@/lib/firebase/firestore-service").then(({ getUserClassSchedule }) => {
         getUserClassSchedule(authUser.userId).then((userSched) => {
-          if (userSched && userSched.classes.length > 0) {
+          if (userSched) {
             const dedicatedRecord: FirestoreScheduleRecord = {
               id: `user_dedicated_${authUser.userId}`,
               semester: userSched.semester,
@@ -69,17 +69,17 @@ export const useScheduleStore = create<DynamicScheduleState>((set, get) => ({
               title: `Personal Schedule ${userSched.semester}/${userSched.academicYear}`,
               status: "published",
               visibility: "selected",
-              courses: userSched.classes,
+              courses: userSched.classes || [],
               pdfEnabled: !!userSched.pdfUrl,
               pdfFileUrl: userSched.pdfUrl,
               createdAt: userSched.updatedAt,
               updatedAt: userSched.updatedAt,
             };
-            set({
-              schedulesList: [dedicatedRecord],
+            set((state) => ({
+              schedulesList: [dedicatedRecord, ...state.schedulesList.filter((s) => s.id !== dedicatedRecord.id)],
               activeScheduleId: dedicatedRecord.id,
               isSubscribed: true,
-            });
+            }));
           }
         }).catch(() => {});
       });

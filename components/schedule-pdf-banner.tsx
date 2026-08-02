@@ -5,12 +5,14 @@ import { useScheduleStore } from "@/stores/use-schedule-store";
 import { motion } from "framer-motion";
 import { FileText, ExternalLink, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { convertGoogleDriveUrl } from "@/lib/utils";
 
 export function SchedulePdfBanner() {
   const getActiveScheduleRecord = useScheduleStore((s) => s.getActiveScheduleRecord);
   const activeSched = getActiveScheduleRecord();
 
-  const pdfUrl = activeSched?.pdfFileUrl;
+  const rawPdfUrl = activeSched?.pdfFileUrl;
+  const pdfUrl = rawPdfUrl ? convertGoogleDriveUrl(rawPdfUrl) : "";
   const isAvailable = !!(activeSched?.pdfEnabled && pdfUrl);
 
   const handleOpenPdf = () => {
