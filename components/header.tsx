@@ -25,7 +25,7 @@ export function Header() {
             <BrandLogo className="w-8 h-8 shrink-0" />
             <div className="min-w-0">
               <div className="font-extrabold tracking-tight leading-tight text-[var(--text)] text-base truncate">
-                Class Bank
+                Class Schedule
               </div>
               <div className="text-xs text-[var(--muted)] mt-0.5 hidden sm:block truncate">
                 University Class Schedule & Wallpapers

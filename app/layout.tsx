@@ -22,12 +22,12 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Class Bank",
-    template: "%s | Class Bank",
+    default: "CSW",
+    template: "%s | CSW",
   },
   description: "Create, manage, and download your university class schedules easily.",
   keywords: [
-    "Class Bank",
+    "CSW",
     "Class Schedule",
     "University Class Schedule",
     "Student Schedule",
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "Thanpisit Ritpetchnil" }],
   creator: "Thanpisit Ritpetchnil",
-  publisher: "Class Bank",
+  publisher: "CSW",
   formatDetection: {
     email: false,
     address: false,
@@ -66,21 +66,21 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: siteUrl,
-    title: "Class Bank",
+    title: "CSW",
     description: "Create, manage, and download your university class schedules easily.",
-    siteName: "Class Bank",
+    siteName: "CSW",
     images: [
       {
         url: `${siteUrl}/og-image.png`,
         width: 1200,
         height: 630,
-        alt: "Class Bank - Create, manage, and download your university class schedules easily.",
+        alt: "CSW - Create, manage, and download your university class schedules easily.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Class Bank",
+    title: "CSW",
     description: "Create, manage, and download your university class schedules easily.",
     images: [`${siteUrl}/og-image.png`],
     creator: "@classbank",
@@ -95,8 +95,8 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "Class Bank",
-    alternateName: ["Class Bank App", "CSW Class Schedule"],
+    name: "CSW",
+    alternateName: ["CSW App", "CSW Class Schedule"],
     url: siteUrl,
     description:
       "University class schedule management and custom lock screen wallpaper generator.",
