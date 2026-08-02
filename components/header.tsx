@@ -25,10 +25,10 @@ export function Header() {
             <BrandLogo className="w-8 h-8 shrink-0" />
             <div className="min-w-0">
               <div className="font-extrabold tracking-tight leading-tight text-[var(--text)] text-base truncate">
-                Class Schedule
+                Class Bank
               </div>
               <div className="text-xs text-[var(--muted)] mt-0.5 hidden sm:block truncate">
-                Designed to stay out of the way.
+                University Class Schedule & Wallpapers
               </div>
             </div>
           </Link>
