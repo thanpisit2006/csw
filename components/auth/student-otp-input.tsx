@@ -2,7 +2,6 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { useAuthStore } from "@/stores/use-auth-store";
 import { setSessionCookie } from "@/lib/session";
 import { logActivity } from "@/lib/logger";
@@ -10,40 +9,41 @@ import { upsertStudentOnLogin, createSession, checkStudentAccess } from "@/lib/f
 import { parseDeviceSpecs, getRealClientIp } from "@/lib/logger";
 import { getDeviceId } from "@/lib/utils";
 import { toast } from "sonner";
-import { GraduationCap, Loader2, AlertCircle } from "lucide-react";
+import { GraduationCap, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 
-const OTP_LENGTH = 11;
-const REQUIRED_PREFIX = "6807050";
-const PREFILLED_DIGITS = ["6", "8", "0", "7", "0", "5", "0", "", "", "", ""];
+// Regex: Exactly 11 digits starting with 6807050 or 6907050
+const VALID_STUDENT_ID_REGEX = /^(6807050|6907050)\d{4}$/;
 
 export function StudentOtpInput() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
-  const [digits, setDigits] = useState<string[]>(PREFILLED_DIGITS);
+
+  const [studentId, setStudentId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Focus first empty box (index 7) or first box on mount
-    inputRefs.current[7]?.focus();
+    inputRef.current?.focus();
   }, []);
 
-  const handleComplete = async (studentIdCode: string) => {
+  const handleCompleteLogin = async (idToSubmit: string) => {
+    const cleanId = idToSubmit.trim();
     setIsLoading(true);
     setErrorMessage(null);
 
     // Admin Access Code override
     const adminAccessCode = process.env.NEXT_PUBLIC_ADMIN_ACCESS_CODE;
-    if (adminAccessCode && studentIdCode === adminAccessCode) {
+    if (adminAccessCode && cleanId === adminAccessCode) {
       toast.info("Admin Access Code Recognized. Redirecting to Admin Portal…");
       router.push("/admin-login");
       return;
     }
 
-    // Client-side Prefix Validation Rule 2: Must begin with 6807050
-    if (!studentIdCode.startsWith(REQUIRED_PREFIX)) {
-      const msg = "Student ID not found in the database.";
+    // Strict 11-digit prefix & length validation
+    if (!VALID_STUDENT_ID_REGEX.test(cleanId)) {
+      const msg = "Please enter a valid student ID.";
       setErrorMessage(msg);
       toast.error(msg);
       setIsLoading(false);
@@ -56,7 +56,7 @@ export function StudentOtpInput() {
       const realIp = await getRealClientIp();
 
       // Check User Block & Device Protection Status in Firestore
-      const accessCheck = await checkStudentAccess(studentIdCode, deviceId);
+      const accessCheck = await checkStudentAccess(cleanId, deviceId);
       if (!accessCheck.allowed) {
         const blockMsg = accessCheck.reason || "Your account has been suspended. Please contact the administrator.";
         setErrorMessage(blockMsg);
@@ -66,14 +66,14 @@ export function StudentOtpInput() {
       }
 
       // Upsert student record in Firestore with real client IP & device specs
-      const studentRecord = await upsertStudentOnLogin(studentIdCode, deviceId, realIp, specs);
+      const studentRecord = await upsertStudentOnLogin(cleanId, deviceId, realIp, specs);
 
       const authUser = {
         userId: studentRecord.id,
-        studentId: studentIdCode,
+        studentId: cleanId,
         name: studentRecord.name,
         role: "student" as const,
-        token: `tok_student_${studentIdCode}_${Date.now()}`,
+        token: `tok_student_${cleanId}_${Date.now()}`,
       };
 
       setUser(authUser);
@@ -82,29 +82,29 @@ export function StudentOtpInput() {
       // Create session record with real IP
       createSession({
         userId: authUser.userId,
-        studentId: studentIdCode,
+        studentId: cleanId,
         role: "student",
         token: authUser.token || "",
         browser: specs.browser,
         os: specs.os,
         screenSize: specs.screenSize,
         ip: realIp,
-      }).catch(() => { });
+      }).catch(() => {});
 
       // Log activity to Firestore
       logActivity({
         userId: authUser.userId,
-        studentId: studentIdCode,
+        studentId: cleanId,
         action: "LOGIN",
         resource: "/",
-        metadata: { method: "OTP Student ID Entry", loginCount: studentRecord.loginCount, deviceId },
-      }).catch(() => { });
+        metadata: { method: "Single Input Student ID Entry", loginCount: studentRecord.loginCount, deviceId },
+      }).catch(() => {});
 
-      toast.success(`Welcome! Student ID: ${studentIdCode}`);
+      toast.success(`Welcome! Student ID: ${cleanId}`);
       router.push("/");
     } catch (err) {
       console.error("Student login error:", err);
-      const errText = "Student ID not found in the database.";
+      const errText = "Please enter a valid student ID.";
       setErrorMessage(errText);
       toast.error(errText);
     } finally {
@@ -112,36 +112,18 @@ export function StudentOtpInput() {
     }
   };
 
-  const handleChange = (index: number, value: string) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage(null);
-    const numeric = value.replace(/\D/g, "");
-    if (!numeric) {
-      const updated = [...digits];
-      updated[index] = "";
-      setDigits(updated);
-      return;
-    }
+    // Numbers only, maximum length 11, trim spaces automatically
+    const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+    setStudentId(val);
 
-    const char = numeric[numeric.length - 1];
-    const updated = [...digits];
-    updated[index] = char;
-    setDigits(updated);
-
-    if (index < OTP_LENGTH - 1) {
-      inputRefs.current[index + 1]?.focus();
-    }
-
-    const completeCode = updated.join("");
-    if (completeCode.length === OTP_LENGTH) {
-      handleComplete(completeCode);
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace") {
-      setErrorMessage(null);
-      if (!digits[index] && index > 0) {
-        inputRefs.current[index - 1]?.focus();
+    // Auto-submit when exactly 11 valid digits are entered
+    if (val.length === 11) {
+      if (VALID_STUDENT_ID_REGEX.test(val)) {
+        handleCompleteLogin(val);
+      } else {
+        setErrorMessage("Please enter a valid student ID.");
       }
     }
   };
@@ -149,74 +131,86 @@ export function StudentOtpInput() {
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     setErrorMessage(null);
-    const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
-    if (!pastedData) return;
+    const pastedText = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 11);
+    setStudentId(pastedText);
 
-    const newDigits = Array(OTP_LENGTH).fill("");
-    for (let i = 0; i < pastedData.length; i++) {
-      newDigits[i] = pastedData[i];
-    }
-    setDigits(newDigits);
-
-    const targetIndex = Math.min(pastedData.length, OTP_LENGTH - 1);
-    inputRefs.current[targetIndex]?.focus();
-
-    if (pastedData.length === OTP_LENGTH) {
-      handleComplete(pastedData);
+    if (pastedText.length === 11) {
+      if (VALID_STUDENT_ID_REGEX.test(pastedText)) {
+        handleCompleteLogin(pastedText);
+      } else {
+        setErrorMessage("Please enter a valid student ID.");
+      }
     }
   };
 
+  const handleSubmitForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanId = studentId.trim();
+    if (!VALID_STUDENT_ID_REGEX.test(cleanId)) {
+      setErrorMessage("Please enter a valid student ID.");
+      toast.error("Please enter a valid student ID.");
+      return;
+    }
+    handleCompleteLogin(cleanId);
+  };
+
   return (
-    <div className="grid gap-6 w-full max-w-full overflow-hidden">
-      {/* Mobile OTP Single-Row Layout: flex nowrap, space-x-1, flex-1 width to prevent wrapping */}
-      <div className="w-full flex items-center justify-between gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar py-1 px-0.5">
-        {digits.map((digit, idx) => (
-          <motion.div
-            key={idx}
-            whileFocus={{ scale: 1.05 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className="flex-1 min-w-[24px] max-w-[42px] aspect-[1/1.3] relative shrink-0"
-          >
-            <input
-              ref={(el) => {
-                inputRefs.current[idx] = el;
-              }}
-              type="text"
-              inputMode="numeric"
-              maxLength={1}
-              value={digit}
-              disabled={isLoading}
-              onChange={(e) => handleChange(idx, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(idx, e)}
-              onPaste={handlePaste}
-              aria-label={`Student ID digit ${idx + 1}`}
-              className={`w-full h-full rounded-lg sm:rounded-xl border text-center font-mono font-black text-sm sm:text-base md:text-lg outline-none transition-all ${errorMessage
-                  ? "border-rose-500 bg-rose-500/10 text-rose-500"
-                  : digit
-                    ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--text)] shadow-sm"
-                    : "border-[color-mix(in_oklab,var(--border)_85%,transparent)] bg-[color-mix(in_oklab,var(--card2)_70%,transparent)] text-[var(--text)]"
-                } focus:border-[var(--accent)] focus:ring-2 sm:focus:ring-4 focus:ring-[var(--accent2)]`}
-            />
-          </motion.div>
-        ))}
+    <form onSubmit={handleSubmitForm} className="grid gap-6 w-full max-w-full">
+      {/* Single 11-digit Student ID Input */}
+      <div className="w-full relative">
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          maxLength={11}
+          value={studentId}
+          placeholder="68070501234"
+          disabled={isLoading}
+          onChange={handleInputChange}
+          onPaste={handlePaste}
+          aria-label="Student ID"
+          className={`w-full h-14 sm:h-16 px-4 rounded-2xl border text-center font-mono font-black text-xl sm:text-2xl tracking-wider outline-none transition-all ${
+            errorMessage
+              ? "border-rose-500 bg-rose-500/10 text-rose-500"
+              : studentId
+              ? "border-[var(--accent)] bg-[color-mix(in_oklab,var(--accent)_15%,transparent)] text-[var(--text)] shadow-sm"
+              : "border-[color-mix(in_oklab,var(--border)_85%,transparent)] bg-[color-mix(in_oklab,var(--card2)_70%,transparent)] text-[var(--text)]"
+          } focus:border-[var(--accent)] focus:ring-4 focus:ring-[var(--accent2)]`}
+        />
+        <span className="absolute -top-2.5 left-4 px-1.5 text-[10px] font-extrabold text-[var(--muted)] bg-[var(--card)] rounded-md border border-[color-mix(in_oklab,var(--border)_60%,transparent)]">
+          STUDENT ID (11 DIGITS)
+        </span>
       </div>
 
+      {/* Loading Indicator */}
       {isLoading && (
         <div className="flex items-center justify-center gap-2 text-xs text-[var(--muted)] animate-pulse">
-          <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)]" /> Checking Student ID Authorization…
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--accent)]" /> Verifying Student ID Authorization…
         </div>
       )}
 
+      {/* Error Banner */}
       {errorMessage && (
         <div className="p-3.5 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-500 text-xs font-semibold flex items-center justify-center gap-2 text-center leading-relaxed">
           <AlertCircle className="w-4 h-4 shrink-0" /> {errorMessage}
         </div>
       )}
 
-      <div className="p-3.5 rounded-xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)] text-xs text-[var(--muted)] text-center font-medium flex items-center justify-center gap-1.5">
-        <GraduationCap className="w-4 h-4 text-[var(--accent)]" /> Enter 11-digit Student ID
+      {/* Helper Footer Card */}
+      <div className="p-3.5 rounded-2xl border border-[color-mix(in_oklab,var(--border)_70%,transparent)] bg-[color-mix(in_oklab,var(--chip)_50%,transparent)] text-xs text-[var(--muted)] text-center font-medium flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <GraduationCap className="w-4 h-4 text-[var(--accent)] shrink-0" />
+          <span className="truncate">Format: <strong className="font-mono text-[var(--text)]">6807050XXXX</strong> / <strong className="font-mono text-[var(--text)]">6907050XXXX</strong></span>
+        </div>
+        <button
+          type="submit"
+          disabled={isLoading || studentId.length !== 11}
+          className="h-8 px-3 rounded-xl bg-[var(--accent)] text-white font-bold text-xs flex items-center gap-1 hover:brightness-110 active:scale-95 disabled:opacity-40 disabled:pointer-events-none transition-all shrink-0 cursor-pointer"
+        >
+          Verify <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
-    </div>
+    </form>
   );
 }
